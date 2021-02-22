@@ -1,15 +1,12 @@
 <template>
-  <a
-    href="#"
+  <div
+    class="feed-mix"
     :mark="mark"
-    :class="{'bg-gray-200 text-gray-900': isFeedActive(getFeed()) }"
-    class="bg-gray-200 text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md"
+    :class="{ active: isFeedActive(getFeed()) }"
     @click="setActiveFeedId(getFeed())"
   >
-    <!-- Current: "text-gray-500", Default: "text-gray-400 group-hover:text-gray-500" -->
-    <!-- Heroicon name: outline/home -->
     <slot />
-  </a>
+  </div>
 </template>
 <script>
 import dataSet from '../mixins/dataItems'

@@ -1,96 +1,115 @@
 <template>
-  <div class="h-full relative flex flex-col w-96 border-r border-gray-200 bg-gray-100">
-    <div class="px-3 pt-0 pb-2">
-      <form
-        class="mt-3 flex space-x-4"
-        action="#"
-      >
-        <div class="flex-1 min-w-0">
-          <label
-            for="search"
-            class="sr-only"
-          >Search</label>
-          <div class="relative rounded-md shadow-sm">
-            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <!-- Heroicon name: mail -->
-              <!-- Heroicon name: solid/search -->
-              <svg
-                class="h-5 w-5 text-gray-400"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                aria-hidden="true"
+  <pane
+    class="articles-list"
+    min-size="20"
+    size="25"
+  >
+    <div class="articles-inner">
+      <form class="search-form">
+        <div class="search-input input-group mb-0">
+          <div class="input-group-prepend">
+            <span class="input-group-text">
+              <feather-icon name="search" />
+            </span>
+          </div>
+          <input
+            v-model="search"
+            type="text"
+            class="form-control"
+            :placeholder="searchTranslate"
+            :aria-label="searchTranslate"
+            @keyup="searchList"
+          >
+          <div class="toolsbar">
+            <div class="tool">
+              <button
+                v-b-tooltip.hover
+                class="btn btn-toolbar"
+                type="button"
+                :title="refreshArticle"
+                :aria-label="refreshArticle"
+                @click="sync"
               >
-                <path
-                  fill-rule="evenodd"
-                  d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                  clip-rule="evenodd"
+                <feather-icon
+                  name="refresh-cw"
+                  :class="{ 'fa-spin': syncState }"
                 />
-              </svg>
+              </button>
             </div>
-            <input
-              id="search"
-              type="search"
-              name="search"
-              class="focus:ring-pink-500 focus:border-pink-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
-              placeholder="Search"
-            >
+            <div class="tool">
+              <button
+                ref="markallread"
+                v-b-tooltip.hover
+                v-b-modal.markallread
+                class="btn btn-toolbar"
+                type="button"
+                :title="markAllRead"
+                :aria-label="markAllRead"
+              >
+                <feather-icon name="check-circle" />
+              </button>
+            </div>
           </div>
         </div>
-        <button
-          type="submit"
-          class="inline-flex justify-center px-3.5 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
-        >
-          <!-- Heroicon name: solid/filter -->
-          <svg
-            class="h-5 w-5 text-gray-400"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            aria-hidden="true"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
-              clip-rule="evenodd"
-            />
-          </svg>
-          <span class="sr-only">Search</span>
-        </button>
       </form>
-    </div>
-    <nav
-      aria-label="Article list"
-      class="min-h-0 flex-1 overflow-y-auto"
-    >
-      <ul class="border-b border-gray-200 divide-y divide-gray-200">
-        <template v-for="(article, index) in filteredArticles">
-          <article-item
-            v-if="index <= articlesToShow"
-            :key="article.articles.uuid"
-            :class="{ active: currentArticle === article.articles.uuid }"
-            :article="article"
-          />
-        </template>
-      </ul>
-    </nav>
-    <div class="flex-shrink-0">
-      <div class="border-t border-b border-gray-200 bg-gray-50 px-6 py-3 text-sm font-medium text-gray-500">
-        Sorted by date
+      <div class="articles">
+        <perfect-scrollbar class="list-group">
+          <template v-if="filteredArticles.length > 0">
+            <template v-for="(article, index) in filteredArticles">
+              <article-item
+                v-if="index <= articlesToShow"
+                :key="article.articles.uuid"
+                :class="{ active: currentArticle === article.articles.uuid }"
+                :article="article"
+              />
+            </template>
+            <button
+              v-if="articlesToShow <= filteredArticles.length"
+              class="btn btn-primary rounded-0"
+              type="button"
+              @click="articlesToShow += 10"
+            >
+              {{ $t('Load more') }}
+            </button>
+          </template>
+          <div
+            v-if="filteredArticles.length === 0"
+            class="no-articles"
+          >
+            {{ $t('No articles available') }}
+          </div>
+        </perfect-scrollbar>
+      </div>
+      <div
+        ref="statusBar"
+        class="statusBar"
+      >
+        <button
+          class="btn foldBtn"
+          type="button"
+          :aria-label="ariaLabelFoldSidebar"
+          @click="fold"
+        >
+          <feather-icon :name="featherIcon" />
+        </button>
+        <span
+          ref="statusMsg"
+          class="statusMsg"
+        />
       </div>
     </div>
-  </div>
+  </pane>
 </template>
 <script>
 import { mapGetters } from 'vuex'
 import helper from '../services/helpers'
 import bus from '../services/bus'
 import serviceSync from '../mixins/serviceSync'
-// import { Pane } from 'splitpanes'
+import { Pane } from 'splitpanes'
 
 export default {
   components: {
-    // Pane
+    Pane
   },
   mixins: [
     serviceSync

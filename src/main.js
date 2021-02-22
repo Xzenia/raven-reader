@@ -1,6 +1,5 @@
 import Vue from 'vue'
 import axios from 'axios'
-import BootstrapVue from 'bootstrap-vue'
 import PerfectScrollbar from 'vue2-perfect-scrollbar'
 import SocialSharing from 'vue-social-sharing'
 import Toasted from 'vue-toasted'
@@ -18,10 +17,9 @@ import i18next from './i18n.config'
 import 'dayjs/locale/en'
 import 'dayjs/locale/fr'
 import './external_links.js'
-import 'bootstrap-vue/dist/bootstrap-vue.css'
+import './assets/tailwind.css'
 import 'vue2-perfect-scrollbar/dist/vue2-perfect-scrollbar.css'
 import 'vue-plyr/dist/vue-plyr.css'
-import './assets/tailwind.css'
 
 dayjs.locale(window.electron.currentLocale())
 Vue.config.productionTip = false
@@ -44,7 +42,6 @@ if (proxy) {
 // ignore ssl error
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
 
-Vue.use(BootstrapVue)
 Vue.use(Toasted)
 Vue.use(PerfectScrollbar)
 Vue.use(SocialSharing)

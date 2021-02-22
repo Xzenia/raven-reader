@@ -10,8 +10,8 @@ export default {
 </script>
 
 <style lang="scss">
-$primary: #579EAB;
-@import './node_modules/bootstrap/scss/bootstrap';
+// $primary: #579EAB;
+// @import './node_modules/bootstrap/scss/bootstrap';
 
 /* open-sans-300 - latin_cyrillic-ext */
 @font-face {

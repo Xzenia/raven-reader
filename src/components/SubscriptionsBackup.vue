@@ -1,69 +1,108 @@
 <template>
-  <div class="space-y-2">
-    <h3
-      id="projects-headline"
-      class="px-3 text-sm font-semibold text-white uppercase tracking-wider"
-    >
-      Subscriptions
-    </h3>
-    <div
-      class="space-y-1"
-      role="group"
-      aria-labelledby="projects-headline"
-    >
+  <div>
+    <ul class="nav flex-column">
       <template v-for="feeditem in mapFeeds(feeds, categoryItems)">
-        <a
+        <li
           v-if="!feeditem.type && feeditem.category === null"
           :key="feeditem.id"
-          href="#"
-          :class="feeditem.isActive ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'"
-          class="group flex items-center px-2 py-2 text-sm font-medium rounded-md"
+          class="feed nav-item d-flex justify-content-between align-items-center pr-2"
+          mark="feed"
+          :class="{ active: feeditem.isActive }"
           @click="setActiveFeedId(feeditem)"
           @contextmenu.prevent="openFeedMenu($event, {feed: feeditem})"
         >
-          <img
-            v-if="feeditem.favicon"
-            :src="feeditem.favicon"
-            class="ml-2 mr-3 h-4 w-4"
+          <a
+            v-if="!feeditem.type && feeditem.category === null"
+            href=""
+            class="nav-link"
+            @click="navigateFeed(feeditem.id)"
           >
-          <span class="truncate">
+            <img
+              v-if="feeditem.favicon"
+              :src="feeditem.favicon"
+              height="16"
+              width="16"
+              class="mr-1"
+            >
             {{ feeditem.title }}
-          </span>
-          <span
+          </a>
+          <div
             v-if="!feeditem.type && feeditem.category === null && getArticlesCount('', feeditem.id) > 0"
-            class="bg-gray-900 group-hover:bg-gray-800 ml-auto inline-block py-0.5 px-3 text-xs font-medium rounded-full"
+            class="nav-link feed-counter"
           >
-            {{ getArticlesCount('', feeditem.id) }}
-          </span>
-        </a>
+            <span class="item-counter">{{ getArticlesCount('', feeditem.id) }}</span>
+          </div>
+        </li>
+        <li
+          v-if="feeditem.type"
+          :key="feeditem.id"
+          class="feed nav-item d-flex align-items-center pr-2"
+          mark="category"
+          :class="{ active: feeditem.isActive }"
+          @click="categoryHandler(feeditem)"
+          @contextmenu.prevent="openCategoryMenu($event, { category: feeditem})"
+        >
+          <button
+            v-if="feeditem.type"
+            v-b-toggle="`collapse-${feeditem.id}`"
+            :aria-label="`${feeditem.title} group`"
+            class="btn btn-link category-link pr-0"
+          >
+            <feather-icon name="chevron-right" />
+          </button>
+          <a
+            href="#"
+            class="nav-link pl-1"
+            replace
+          >{{ feeditem.title }}</a>
+          <div
+            v-if="getArticlesCount('category', feeditem.title) > 0"
+            class="nav-link feed-counter"
+          >
+            <span class="item-counter">{{ getArticlesCount('category', feeditem.title) }}</span>
+          </div>
+        </li>
+        <b-collapse
+          v-if="feeditem.type"
+          :id="`collapse-${feeditem.id}`"
+          :key="`collapse-${feeditem.id}`"
+        >
+          <template v-for="categoryfeed in categoryFeeds(feeds, feeditem.title)">
+            <li
+              :key="categoryfeed.id"
+              class="feed nav-item d-flex justify-content-between align-items-center pr-2"
+              mark="feed"
+              :class="{ active: categoryfeed.isActive }"
+              @click="setActiveFeedId(categoryfeed)"
+              @contextmenu.prevent="openFeedMenu($event, {feed: categoryfeed})"
+            >
+              <a
+                href=""
+                class="nav-link ml-1"
+                @click="navigateFeed(categoryfeed.id)"
+              >
+                <img
+                  v-if="categoryfeed.favicon"
+                  :src="categoryfeed.favicon"
+                  height="16"
+                  width="16"
+                  class="mr-1"
+                >
+                {{ categoryfeed.title }}
+              </a>
+              <div
+                v-if="getArticlesCount('', categoryfeed.id) > 0"
+                class="nav-link feed-counter"
+              >
+                <span class="item-counter">{{ getArticlesCount('', categoryfeed.id) }}</span>
+              </div>
+            </li>
+          </template>
+        </b-collapse>
       </template>
-      <!-- <a
-        href="#"
-        class="group flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50"
-      >
-        <span class="truncate">
-          GraphQL API
-        </span>
-      </a>
-
-      <a
-        href="#"
-        class="group flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50"
-      >
-        <span class="truncate">
-          Customer migration guides
-        </span>
-      </a>
-
-      <a
-        href="#"
-        class="group flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50"
-      >
-        <span class="truncate">
-          Profit sharing program
-        </span>
-      </a> -->
-    </div>
+    </ul>
+    <edit-feed :feed="activeFeed" />
+    <edit-category :feed="activeFeed" />
   </div>
 </template>
 <script>

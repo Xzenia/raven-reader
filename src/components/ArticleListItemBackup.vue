@@ -1,46 +1,43 @@
 <template>
-  <li
-    :class="article.articles.read ? 'bg-gray-50' : 'bg-white hover:bg-gray-50'"
-    class="relative py-4 px-4 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600"
+  <div
+    class="artcle-list-item"
+    mark="article"
     @contextmenu.prevent="openArticleContextMenu($event, { article: article.articles })"
   >
-    <div class="flex justify-between space-x-3">
-      <div class="min-w-0 flex-1">
-        <a
-          href="#"
-          class="block focus:outline-none"
-          @click="handleArticle(article.articles.id)"
-        >
-          <span
-            class="absolute inset-0"
-            aria-hidden="true"
-          />
-          <p class="text-sm font-medium text-gray-900">
-            {{ article.articles.title }}
-          </p>
-          <div class="mt-2 flex items-center">
-            <img
-              v-if="article.feeds.favicon"
-              :src="article.feeds.favicon"
-              class="mr-2 w-3 h-3"
-            >
-            <p class="text-sm text-gray-500 truncate">
-              {{ article.feeds.title }}
-            </p>
-          </div>
-        </a>
+    <a
+      href=""
+      :class="{ 'article-read': article.articles.read }"
+      class="list-group-item list-group-item-action flex-column align-items-start"
+      @click="handleArticle(article.articles.id)"
+    >
+      <div class="d-flex flex-column w-100">
+        <p class="mb-1">
+          <small><img
+            v-if="article.feeds.favicon"
+            :src="article.feeds.favicon"
+            width="16"
+            height="16"
+            class="mr-2"
+          > {{ article.feeds.title }}</small>
+        </p>
+        <p class="mb-2">
+          <small>{{ formatDate(article.articles) }}</small>
+        </p>
       </div>
-    </div>
-    <div class="mt-2 mb-2">
-      <p class="line-clamp-2 text-sm text-gray-600">
-        {{ article.articles.contentSnippet }}
+      <h6><strong>{{ article.articles.title }}</strong></h6>
+      <p>{{ article.articles.contentSnippet }}</p>
+      <p
+        v-if="article.articles.favourite"
+        class="text-right mb-0"
+      >
+        <feather-icon
+          name="star"
+          size="sm"
+          :filled="article.articles.favourite"
+        />
       </p>
-    </div>
-    <time
-      datetime="2021-01-27T16:35"
-      class="flex-shrink-0 whitespace-nowrap text-sm text-gray-500"
-    >{{ formatDate(article.articles) }}</time>
-  </li>
+    </a>
+  </div>
 </template>
 <script>
 import bus from '../services/bus'
@@ -68,7 +65,8 @@ export default {
       if (article.source === 'inoreader' || article.source === 'greader') {
         formatDate = dayjs.unix(article.pubDate).format('LLL')
       } else {
-        formatDate = dayjs().to(article.pubDate)
+        formatDate = dayjs(article.pubDate)
+          .format('LLL')
       }
       return formatDate
     },
